@@ -1,0 +1,339 @@
+{
+  "name": "6.sistem Triase Phising Ai",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "58c2ca78-23fe-4699-a594-aa4c3c169b80",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PS5RbkwlMwVPThPw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "xiaomi/mimo-v2.6-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        384,
+        304
+      ],
+      "id": "e1781b5e-8b71-4d1d-af29-a7641e6c47ce",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "5f66b2t3FyPbqL6B",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "f4ef7082-82e0-4dd0-9297-e682b11b2459",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "customer@bcainsurance.co.id",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "21fc54d7-a06c-44a6-80ea-40ccbdbdd320",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "haloblu@bcadigital.co.id",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "7f444818-ca02-4e6f-8286-1839dcfa54f5",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "customer@bcalife.co.id",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "d31f8545-6b86-4e95-be19-8a5b660c9b6c",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "recruitmentbcaf@bcaf.id",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0e8d112a-1d3c-411b-a9f1-f7b9adb565f2",
+      "name": "Cek Allowist"
+    },
+    {
+      "parameters": {
+        "chatId": "6683202185",
+        "text": "=ada email baru dari : {{ $('Gmail Trigger').item.json.From }}\nSubject: {{ $('Gmail Trigger').item.json.Subject }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        -96
+      ],
+      "id": "597cb3bf-f6c9-4888-ae8f-56e12ed3460f",
+      "name": "Reminder Email dari allowist",
+      "webhookId": "89469e1a-cd77-4288-b13a-714cfd9f8c58",
+      "credentials": {
+        "telegramApi": {
+          "id": "S4RzLTXD8Uk0PW3O",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analisis teks email ini untuk tanda-tanda phishing keuangan. Fokus pada urgensi palsu, tautan mencurigakan, permintaan info pribadi, atau peniruan identitas bank. Beri skor bahaya dari 1 sampai 10. Jawab HANYA dengan format: 'Skor: [angka]'.\\n\\nEmail:{{ $json.snippet }}  Subject:{{ $json.Subject }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        96
+      ],
+      "id": "da847418-e70f-46b7-8f1c-148e59bde156",
+      "name": "Analisa Phising"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ambil data dari node-node sebelumnya\n// $json.text adalah output dari Basic LLM Chain\nconst llmOutput = $json.text; \n\n// $json.id adalah Message ID yang datang dari \"Gmail Trigger\"\n// Node LLM Chain akan meneruskan data ini secara otomatis\nconst emailMessageId = $json.id; \n\n// Gunakan regex untuk menemukan \"Skor: [angka]\"\nconst match = llmOutput.match(/Skor:\\s*(\\d+)/);\n\nlet score = 0;\n\n// Jika ditemukan, ambil angkanya\nif (match && match[1]) {\n  score = parseInt(match[1], 10);\n}\n\n// Kembalikan skor DAN messageId untuk node IF dan Gmail\nreturn { \n  score: score,\n  messageId: emailMessageId \n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        96
+      ],
+      "id": "5f009f9d-da8a-4af0-bd74-8bb74f1dfe40",
+      "name": "Ekstrak Skor dari Teks AI"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "5aa26cea-e239-42dc-96dd-fef1c45a9d89",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1040,
+        96
+      ],
+      "id": "95b13c32-ebd2-43e2-886e-115a6cfa2f8d",
+      "name": "Cek Skor Bahaya"
+    },
+    {
+      "parameters": {
+        "chatId": "6683202185",
+        "text": "=⚠️ Tinjauan Email Diperlukan ⚠️  Email ini TIDAK dihapus, tapi AI mendeteksinya. Mohon periksa secara manual.   - Skor AI: {{ $json.score }}/10  - Dari: {{ $('Gmail Trigger').item.json.From }} - Subjek: {{ $('Gmail Trigger').item.json.Subject }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1264,
+        192
+      ],
+      "id": "0c032c9a-ca84-401a-a248-af96f16e5a60",
+      "name": "Notif untuk skor rendah",
+      "webhookId": "f9424c72-3456-42b3-adab-ad0392a2b9b9",
+      "credentials": {
+        "telegramApi": {
+          "id": "S4RzLTXD8Uk0PW3O",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_689521742909086958"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "db52caba-685f-4afe-a434-1aa1c5bd52d0",
+      "name": "Add label to message",
+      "webhookId": "2b2842aa-d463-435b-963f-b187e27b954b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PS5RbkwlMwVPThPw",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Cek Allowist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analisa Phising",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cek Allowist": {
+      "main": [
+        [
+          {
+            "node": "Reminder Email dari allowist",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analisa Phising",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analisa Phising": {
+      "main": [
+        [
+          {
+            "node": "Ekstrak Skor dari Teks AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ekstrak Skor dari Teks AI": {
+      "main": [
+        [
+          {
+            "node": "Cek Skor Bahaya",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cek Skor Bahaya": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notif untuk skor rendah",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fedb121a-7588-4100-bc25-c137a46222b8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc96f10ae7dc95d3c138575ba243a0a167923dbcb524841d451aadf9135d5fb3"
+  },
+  "nodeGroups": [],
+  "id": "3NRwSIKltoPSSQv4",
+  "tags": []
+}
