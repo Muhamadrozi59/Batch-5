@@ -1,0 +1,514 @@
+{
+  "name": "8.Analisis Sentimen Harian ($BTC_$ETH)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        1296,
+        176
+      ],
+      "id": "b4c7550b-7cc4-468d-a74e-3105bd0d8e4d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the sentiment of the following tweet. Respond ONLY with ONE word: 'Positive', 'Negative', or 'Neutral'.\n\nTweet:\n{{ $json.Tweet_Text }}\n\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        2272,
+        176
+      ],
+      "id": "9f7dc456-1153-4dbc-a112-0779d1fa79ee",
+      "name": "Analisis Sentimen",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "19Olm0s6qzmW1AEzrmK0HrhhDB7Ix25DvfzXmmV8aD9g",
+          "mode": "list",
+          "cachedResultName": "data mentah",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19Olm0s6qzmW1AEzrmK0HrhhDB7Ix25DvfzXmmV8aD9g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19Olm0s6qzmW1AEzrmK0HrhhDB7Ix25DvfzXmmV8aD9g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('Limit').item.json.Timestamp }}",
+            "Tweet_ID ": "={{ $('Limit').item.json.Tweet_ID }}",
+            "Tweet_Text": "={{ $('Limit').item.json.Tweet_Text }}",
+            "Sentiment": "={{ $json.text.trim() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tweet_ID ",
+              "displayName": "Tweet_ID ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tweet_Text",
+              "displayName": "Tweet_Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2624,
+        176
+      ],
+      "id": "75a68ec6-7cb9-4c08-a0e7-c181c1a5d555",
+      "name": "Penyimpanan Hasil",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qvNlntU9Ja1TZ8zV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        1344,
+        528
+      ],
+      "id": "45c558f2-0d4e-4d3d-a345-0970fe3eea4e",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "19Olm0s6qzmW1AEzrmK0HrhhDB7Ix25DvfzXmmV8aD9g",
+          "mode": "list",
+          "cachedResultName": "data mentah",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19Olm0s6qzmW1AEzrmK0HrhhDB7Ix25DvfzXmmV8aD9g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19Olm0s6qzmW1AEzrmK0HrhhDB7Ix25DvfzXmmV8aD9g/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        528
+      ],
+      "id": "a63863d1-ad39-4624-8a1e-793cc542f22c",
+      "name": "Membaca Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "qvNlntU9Ja1TZ8zV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ambil semua baris dari node \"Google Sheets\"\n// **Pastikan nama node Anda adalah \"Google Sheets\"**\nconst items = $items(\"Membaca Data\");\n\nlet positive = 0;\nlet negative = 0;\nlet neutral = 0;\nlet total = 0;\n\n// Loop melalui setiap baris\nfor (const item of items) {\n  // Ambil nilai dari kolom \"Sentiment\"\n  const sentiment = item.json.Sentiment;\n  \n  if (sentiment === 'Positive') {\n    positive++;\n  } else if (sentiment === 'Negative') {\n    negative++;\n  } else if (sentiment === 'Neutral') {\n    neutral++;\n  }\n}\n\ntotal = items.length;\n\n// Kembalikan hasil perhitungan\nreturn {\n  total_tweets: total,\n  sentimen_positif: positive,\n  sentimen_negatif: negative,\n  sentimen_netral: neutral\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        528
+      ],
+      "id": "84ca0ad3-8419-47c5-bf9a-5bf2c952ae53",
+      "name": "Analisis Data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Anda adalah seorang analis sentimen media sosial.\nTuliskan kesimpulan singkat (dalam bahasa Indonesia) untuk laporan Telegram, berdasarkan data berikut:\n\n- Total Tweet Dianalisis: {{ $json.total_tweets }}\n- Sentimen Positif: {{ $json.sentimen_positif }}\n- Sentimen Negatif: {{ $json.sentimen_negatif }}\n- Sentimen Netral: {{ $json.sentimen_netral }}\n\nBerikan ringkasan singkat tentang apa arti angka-angka ini (misalnya, \"Sentimen hari ini cenderung positif,\" \"Ada banyak keraguan di pasar,\" dll.).\n\nGunakan teks biasa saja. Jangan pakai tanda bintang, tanda pagar, garis bawah, atau format markdown apa pun.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        2016,
+        528
+      ],
+      "id": "f86690dc-5ac3-4ee3-b4b6-7a699a11493c",
+      "name": "Membuat Kesimpulan"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        688
+      ],
+      "id": "52ccc28b-cf9a-4df1-b136-40bb3959265a",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wO6ZfuTtq2caZzRY",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        2160,
+        336
+      ],
+      "id": "cdaebe50-f801-4029-9b6b-5b9c9765bfa8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wO6ZfuTtq2caZzRY",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        176
+      ],
+      "id": "65c1fbdd-f372-4a78-b1a8-d8644a9b1393",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        368
+      ],
+      "id": "b2638cb5-0d07-41d6-a0a6-6e00a698845d",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wO6ZfuTtq2caZzRY",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://mcp.xpoz.ai/mcp",
+        "authentication": "bearerAuth",
+        "include": "selected",
+        "includeTools": [
+          "getTwitterPostsByKeywords"
+        ],
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.4,
+      "position": [
+        1728,
+        368
+      ],
+      "id": "45f99878-6a85-4414-bdd4-a259c0787b54",
+      "name": "MCP Client",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "qj49iqnteKtLfQ0u",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output || '';\nconst clean = raw.replace(/```json|```/g, '').trim();\n\nlet data;\ntry {\n  data = JSON.parse(clean);\n} catch (e) {\n  throw new Error('Output agen bukan JSON valid: ' + raw.slice(0, 200));\n}\n\nconst list = Array.isArray(data) ? data : (data.tweets || data.results || []);\n\nreturn list.map(t => ({\n  json: {\n    Timestamp: t.createdAt || t.created_at || new Date().toISOString(),\n    Tweet_ID: String(t.id),\n    Tweet_Text: t.text\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        176
+      ],
+      "id": "5428f5cd-7a86-4673-932d-d0ccc83a5252",
+      "name": "Pisahkan Tweet"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Gunakan tool getTwitterPostsByKeywords untuk mencari tweet terbaru berbahasa Inggris yang menyebut \"$BTC\" OR \"$ETH\", tanpa retweet. Ambil hanya 10 tweet terbaru.\n\nJawab HANYA dengan JSON array valid, tanpa penjelasan dan tanpa tanda ```. Setiap elemen berisi: id, text, createdAt.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1488,
+        176
+      ],
+      "id": "ca065aed-6b1a-4a96-a666-4d77634d1df4",
+      "name": "Pengambil data"
+    },
+    {
+      "parameters": {
+        "chatId": "6683202185",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2384,
+        528
+      ],
+      "id": "1dd01aee-eae9-42e0-a4ad-f0e1e552703b",
+      "name": "Kirim Laporan1",
+      "webhookId": "bc1dd4cf-9ac9-46c6-a31b-ada10486593b",
+      "credentials": {
+        "telegramApi": {
+          "id": "S4RzLTXD8Uk0PW3O",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pengambil data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analisis Sentimen": {
+      "main": [
+        [
+          {
+            "node": "Penyimpanan Hasil",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Membaca Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Membaca Data": {
+      "main": [
+        [
+          {
+            "node": "Analisis Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analisis Data": {
+      "main": [
+        [
+          {
+            "node": "Membuat Kesimpulan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Membuat Kesimpulan",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Membuat Kesimpulan": {
+      "main": [
+        [
+          {
+            "node": "Kirim Laporan1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analisis Sentimen",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Analisis Sentimen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Pengambil data",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "Pengambil data",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pisahkan Tweet": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pengambil data": {
+      "main": [
+        [
+          {
+            "node": "Pisahkan Tweet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "abd5bec3-0305-4c9f-94a5-f003fce18977",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc96f10ae7dc95d3c138575ba243a0a167923dbcb524841d451aadf9135d5fb3"
+  },
+  "nodeGroups": [],
+  "id": "M8Of133gccVAEgkU",
+  "tags": []
+}
